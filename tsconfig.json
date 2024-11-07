@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "types": [
+      "@girs/gjs",
+      "@girs/gjs/dom",
+      "@girs/gio-2.0",
+      "@girs/glib-2.0",
+      "@girs/gtk-4.0"
+    ],
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "sourceMap": false,
+    "strict": true,
+    "target": "ES2022",
+    "lib": [
+      "ES6",
+    ],
+  },
+  "include": [
+  ],
+  "files": [
+    "src/**/*"
+  ],
+}
