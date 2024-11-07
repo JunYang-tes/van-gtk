@@ -14,26 +14,44 @@ type MimicDom<T extends Gtk.Widget> = T & {
 }
 
 (globalThis as any).Text = function Text(text: any) {
-  if(text == null) {
+  if (text == null) {
     return null
   }
   const label = new Gtk.Label({ label: String(text) })
   return wrapWidget(label, "Label")
 }
 
-const replace = {
-  'Box': (box: Gtk.Box, newWidget: Gtk.Widget, oldWidget: Gtk.Widget) => {
-    let child = box.get_first_child()
-    let prev = child
-    while (child != null && child !== oldWidget) {
-      prev = child
-      child = child.get_next_sibling();
-    }
-    oldWidget.unparent();
-    box.insert_child_after(newWidget, prev);
+function replaceWith(box: Gtk.Widget,
+  newWidget: Gtk.Widget, oldWidget: Gtk.Widget
+) {
+  let child = box.get_first_child()
+  let prev = child
+  while (child != null && child !== oldWidget) {
+    prev = child
+    child = child.get_next_sibling();
   }
+  oldWidget.unparent();
+  box.insert_after(newWidget, prev)
 }
-const appendFns: Record<string, (widget: Gtk.Widget, child: Gtk.Widget) => void> = {
+function singleChildContainerReplaceWith<T extends { child: Gtk.Widget }>(container: T, newWidget: Gtk.Widget, oldWidget: Gtk.Widget) {
+  oldWidget.unparent();
+  container.child = newWidget
+}
+
+const replace = {
+  'Box': replaceWith,
+  'ListBox': replaceWith,
+  'ListBoxRow': singleChildContainerReplaceWith<Gtk.ListBoxRow>,
+  'ScrolledWindow': singleChildContainerReplaceWith<Gtk.ScrolledWindow>,
+  'Revealer': singleChildContainerReplaceWith<Gtk.Revealer>,
+}
+function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: T, child: Gtk.Widget) {
+  container.child = child
+}
+const appendFns = {
+  'ListBoxRow': singleChildContainerAppend<Gtk.ListBoxRow>,
+  'ScrolledWindow': singleChildContainerAppend<Gtk.ScrolledWindow>,
+  'Revealer': singleChildContainerAppend<Gtk.Revealer>
 }
 
 function wrapWidget<T extends Gtk.Widget>(
@@ -51,6 +69,12 @@ function wrapWidget<T extends Gtk.Widget>(
   w.replaceWith = function (newWidget: Gtk.Widget) {
     const parent = widget.parent
     replace[parent._name as keyof typeof replace]?.(parent, newWidget, widget)
+  }
+  w.setAttribute = function (name: string, value: any) {
+    ;//(widget as any)[`set${name.charAt(0).toUpperCase() + name.slice(1)}`](value)
+    widget.set({
+      name: value
+    })
   }
   w.append = function (child: Gtk.Widget | string | number | boolean) {
     if (append == null && appendFns[name as keyof typeof appendFns] == null) return

@@ -1,0 +1,12 @@
+{
+  "name": "counter",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.js",
+    "run":"pnpm run build && gjs -m dist/main.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3"
+  }
+}

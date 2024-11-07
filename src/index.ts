@@ -4,7 +4,14 @@ import './dom.js'
 import vancore from 'vanjs-core'
 import type { Tags, Van } from './van.d.ts'
 export const {
-  Button, Box, Label
+  Button,
+  Box,
+  Label,
+  Entry,
+  ListBox,
+  ListBoxRow,
+  ScrolledWindow,
+  Revealer,
 } = vancore.tags as any as Tags
 export const van = {
   state: vancore.state,

@@ -9,7 +9,16 @@ type Node = Gtk.Widget
 type WidgetNameMap = {
   Button: Gtk.Button,
   Label: Gtk.Label,
-  Box: Gtk.Box
+  Box: Gtk.Box,
+  Entry: Gtk.Entry,
+  ScrolledWindow: Gtk.ScrolledWindow,
+  Grid: Gtk.Grid,
+  ListBox: Gtk.ListBox,
+  ListBoxRow: Gtk.ListBoxRow,
+  Revealer: Gtk.Revealer,
+  Stack: Gtk.Stack,
+  StackSwitcher: Gtk.StackSidebar,
+  StackSidebar: Gtk.StackSidebar
 }
 
 // Defining readonly view of State<T> for covariance.
@@ -26,7 +35,7 @@ export type PropValueOrDerived = PropValue | StateView<PropValue> | (() => PropV
 
 export type Props = Record<string, PropValueOrDerived> & { class?: PropValueOrDerived }
 
-export type PropsWithKnownKeys<ElementType> = Partial<{[K in keyof ElementType]: PropValueOrDerived}>
+export type PropsWithKnownKeys<ElementType> = Partial<{ [K in keyof ElementType]: PropValueOrDerived }>
 
 export type ValidChildDomValue = Primitive | Node | null | undefined
 
