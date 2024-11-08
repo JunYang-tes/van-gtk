@@ -44,6 +44,8 @@ const replace = {
   'ListBoxRow': singleChildContainerReplaceWith<Gtk.ListBoxRow>,
   'ScrolledWindow': singleChildContainerReplaceWith<Gtk.ScrolledWindow>,
   'Revealer': singleChildContainerReplaceWith<Gtk.Revealer>,
+  'StackPage': singleChildContainerReplaceWith<Gtk.StackPage>,
+  'Stack': replaceWith
 }
 function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: T, child: Gtk.Widget) {
   container.child = child
@@ -51,7 +53,16 @@ function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: 
 const appendFns = {
   'ListBoxRow': singleChildContainerAppend<Gtk.ListBoxRow>,
   'ScrolledWindow': singleChildContainerAppend<Gtk.ScrolledWindow>,
-  'Revealer': singleChildContainerAppend<Gtk.Revealer>
+  'Revealer': singleChildContainerAppend<Gtk.Revealer>,
+  'StackPage': singleChildContainerAppend<Gtk.StackPage>,
+  'Stack': (container: Gtk.Stack, child: Gtk.Widget) => {
+    const _stackMeta = (child as any)._van_stackMeta as { name: string, title?: string }
+    if (_stackMeta.title) {
+      container.add_titled(child, _stackMeta.name, _stackMeta.title)
+    } else {
+      container.add_named(child, _stackMeta.name)
+    }
+  }
 }
 
 function wrapWidget<T extends Gtk.Widget>(

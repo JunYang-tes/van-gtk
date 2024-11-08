@@ -18,7 +18,8 @@ type WidgetNameMap = {
   Revealer: Gtk.Revealer,
   Stack: Gtk.Stack,
   StackSwitcher: Gtk.StackSidebar,
-  StackSidebar: Gtk.StackSidebar
+  StackSidebar: Gtk.StackSidebar,
+  StackPage: Gtk.StackPage
 }
 
 // Defining readonly view of State<T> for covariance.
