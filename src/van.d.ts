@@ -1,4 +1,5 @@
 import Gtk from '@girs/gtk-4.0'
+import { OverloadUnionRecursive, UnionToIntersection } from './types'
 export interface State<T> {
   val: T
   readonly oldVal: T
@@ -6,7 +7,7 @@ export interface State<T> {
 }
 type Element = Gtk.Widget
 type Node = Gtk.Widget
-type WidgetNameMap = {
+export type WidgetNameMap = {
   Button: Gtk.Button,
   Label: Gtk.Label,
   Box: Gtk.Box,
@@ -20,6 +21,77 @@ type WidgetNameMap = {
   StackSwitcher: Gtk.StackSidebar,
   StackSidebar: Gtk.StackSidebar,
   StackPage: Gtk.StackPage
+  Switch: Gtk.Switch,
+  Scale: Gtk.Scale,
+  FlowBox: Gtk.FlowBox,
+  Fixed: Gtk.Fixed,
+  DrawingArea: Gtk.DrawingArea,
+  Notebook: Gtk.Notebook,
+  Spinner: Gtk.Spinner,
+  Overlay: Gtk.Overlay
+}
+export type WidgetCtorProps = {
+  Button: Gtk.Button.ConstructorProps,
+  Label: Gtk.Label.ConstructorProps,
+  Box: Gtk.Box.ConstructorProps,
+  Entry: Gtk.Entry.ConstructorProps,
+  ScrolledWindow: Gtk.ScrolledWindow.ConstructorProps,
+  Grid: Gtk.Grid.ConstructorProps,
+  ListBox: Gtk.ListBox.ConstructorProps,
+  ListBoxRow: Gtk.ListBoxRow.ConstructorProps,
+  Revealer: Gtk.Revealer.ConstructorProps,
+  Stack: Gtk.Stack.ConstructorProps,
+  StackSwitcher: Gtk.StackSidebar.ConstructorProps,
+  StackSidebar: Gtk.StackSidebar.ConstructorProps,
+  StackPage: Gtk.StackPage.ConstructorProps
+  Switch: Gtk.Switch.ConstructorProps,
+  Scale: Gtk.Scale.ConstructorProps,
+  FlowBox: Gtk.FlowBox.ConstructorProps,
+  Fixed: Gtk.Fixed.ConstructorProps,
+  DrawingArea: Gtk.DrawingArea.ConstructorProps & {
+    draw_func: Gtk.DrawingAreaDrawFunc
+  },
+  Notebook: Gtk.Notebook.ConstructorProps,
+  Spinner: Gtk.Spinner.ConstructorProps,
+  Overlay: Gtk.Overlay.ConstructorProps
+}
+
+
+/**
+ * (string,callback) | ('clicked',callback) | ('actived',callback)
+ * to 
+ * ('clicked',callback) | ('actived',callback)
+ * */
+type RemoveStringEventName<E> = E extends [infer A, infer B]
+  ? string extends A
+  ? never
+  : [A, B]
+  : never
+
+type Events<T extends ((...args: any[]) => any)> = UnionToIntersection<RemoveStringEventName<Parameters<OverloadUnionRecursive<T>>> extends [infer A, infer B]
+  ? A extends string
+  ? { [k in `on${A}`]?: B }
+  : never
+  : never>;
+
+export type ReactiveProps<T> = {
+  [K in keyof T]?: T[K] extends Gtk.Widget
+  ? T[K] | (() => T[K])
+  : T[K] | State<T[K]> | (() => T[K])
+}
+export type WidgetEventsMap = {
+  [k in keyof WidgetNameMap]: Events<WidgetNameMap[k]["connect"]>
+} & {
+  'Entry': Events<Gtk.Entry['connect']> & {
+    onchanged?: (i: Gtk.Entry) => void,
+    'ondelete-text'?: (i: Gtk.Entry) => void,
+    'oninsert-text'?: (i: Gtk.Entry) => void
+  }
+}
+//type A = Events<Gtk.Editable['connect']>['onch']
+
+export type WidgetReactiveProps = {
+  [k in keyof WidgetCtorProps]: ReactiveProps<WidgetCtorProps[k]>// & Events<WidgetNameMap[k]["connect"]>
 }
 
 // Defining readonly view of State<T> for covariance.
@@ -43,11 +115,12 @@ export type ValidChildDomValue = Primitive | Node | null | undefined
 export type BindingFunc = ((dom?: Node) => ValidChildDomValue) | ((dom?: Element) => Element)
 
 export type ChildDom = ValidChildDomValue | StateView<Primitive | null | undefined> | BindingFunc | readonly ChildDom[]
+export type SingleChildDom = ValidChildDomValue | StateView<Primitive | null | undefined> | BindingFunc
 
-export type TagFunc<Result> = (first?: Props & PropsWithKnownKeys<Result> | ChildDom, ...rest: readonly ChildDom[]) => Result
+export type TagFunc<Result> = (first?: Props & ReactiveProps<Result> | ChildDom, ...rest: readonly ChildDom[]) => Result
 
-export type Tags = Readonly<Record<string, TagFunc<Element>>> & {
-  [K in keyof WidgetNameMap]: TagFunc<WidgetNameMap[K]>
+export type Tags = {
+  [K in keyof WidgetNameMap]: (first?: (WidgetReactiveProps[K] & WidgetEventsMap[K]) | ChildDom, ...rest: readonly ChildDom[]) => WidgetNameMap[K]
 }
 
 declare function state<T>(): State<T>

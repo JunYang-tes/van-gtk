@@ -1,5 +1,6 @@
 
 import Gtk from 'gi://Gtk?version=4.0';
+import * as ex from './ex'
 
 type MimicDom<T extends Gtk.Widget> = T & {
   _name: string,
@@ -30,9 +31,11 @@ function replaceWith(box: Gtk.Widget,
     prev = child
     child = child.get_next_sibling();
   }
+
+  newWidget.insert_after(box, prev)
   oldWidget.unparent();
-  box.insert_after(newWidget, prev)
 }
+
 function singleChildContainerReplaceWith<T extends { child: Gtk.Widget }>(container: T, newWidget: Gtk.Widget, oldWidget: Gtk.Widget) {
   oldWidget.unparent();
   container.child = newWidget
@@ -45,7 +48,9 @@ const replace = {
   'ScrolledWindow': singleChildContainerReplaceWith<Gtk.ScrolledWindow>,
   'Revealer': singleChildContainerReplaceWith<Gtk.Revealer>,
   'StackPage': singleChildContainerReplaceWith<Gtk.StackPage>,
-  'Stack': replaceWith
+  'Stack': replaceWith,
+  'FlowBox': replaceWith,
+  'Fixed': replaceWith,
 }
 function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: T, child: Gtk.Widget) {
   container.child = child
@@ -56,12 +61,23 @@ const appendFns = {
   'Revealer': singleChildContainerAppend<Gtk.Revealer>,
   'StackPage': singleChildContainerAppend<Gtk.StackPage>,
   'Stack': (container: Gtk.Stack, child: Gtk.Widget) => {
-    const _stackMeta = (child as any)._van_stackMeta as { name: string, title?: string }
+    const _stackMeta = ex.get(child) as { name: string, title?: string }
     if (_stackMeta.title) {
       container.add_titled(child, _stackMeta.name, _stackMeta.title)
     } else {
       container.add_named(child, _stackMeta.name)
     }
+  },
+  'Notebook': (container: Gtk.Notebook, child: Gtk.Widget) => {
+    const title = ex.get(child)
+    if (title) {
+      container.append_page(child, title)
+    }
+    //TODO: error
+  },
+  'Fixed': (container: Gtk.Fixed, child: Gtk.Widget) => {
+    const { x, y } = ex.get(child) ?? { x: 0, y: 0 }
+    container.put(child, x, y)
   }
 }
 
@@ -82,10 +98,15 @@ function wrapWidget<T extends Gtk.Widget>(
     replace[parent._name as keyof typeof replace]?.(parent, newWidget, widget)
   }
   w.setAttribute = function (name: string, value: any) {
-    ;//(widget as any)[`set${name.charAt(0).toUpperCase() + name.slice(1)}`](value)
-    widget.set({
-      name: value
-    })
+    console.log("name:", name, value);
+    try {
+      (widget as any)[`set_${name}`](value)
+    } catch (e) {
+      console.error(e)
+    }
+    // widget.set({
+    //   name: value
+    // })
   }
   w.append = function (child: Gtk.Widget | string | number | boolean) {
     if (append == null && appendFns[name as keyof typeof appendFns] == null) return
@@ -113,49 +134,7 @@ function wrapWidget<T extends Gtk.Widget>(
       return w.parent != null
     }
   })
-
-
   return w
-
-  return Object.assign(widget, {
-    _name: name,
-    nodeType: 1,
-    append: function (child: Gtk.Widget | string | number | boolean) {
-      if (append == null && appendFns[name as keyof typeof appendFns] == null) return
-      const childWidget = typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean'
-        ? new Gtk.Label({ label: String(child) }) : child
-      if (append) {
-        append.call(widget, childWidget)
-      } else {
-        appendFns[name as keyof typeof appendFns]?.(widget, childWidget)
-      }
-    },
-    replaceWith: function (newOne: Gtk.Widget) {
-      const parent = widget.parent as MimicDom<Gtk.Widget>
-      replace[parent._name as keyof typeof replace]?.(parent as any, newOne, widget)
-    },
-    remove: function () {
-      widget.unparent();
-    },
-    setAttribute: function (name: string, value: any) {
-      (widget as any)[`set${name.charAt(0).toUpperCase() + name.slice(1)}`](value)
-    },
-    removeEventListener:
-      function (event: string, callback: any) {
-        if (callback) {
-          widget.disconnect(listeners.get(callback))
-        }
-      },
-    addEventListener:
-      function (event: string, callback: any) {
-        console.log("connect:", event)
-        const id = widget.connect(event, callback)
-        listeners.set(callback, id)
-      },
-    get isConnected() {
-      return widget.parent != null
-    }
-  })
 }
 
 
