@@ -51,6 +51,7 @@ const replace = {
   'Stack': replaceWith,
   'FlowBox': replaceWith,
   'Fixed': replaceWith,
+  'Popover': replaceWith
 }
 function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: T, child: Gtk.Widget) {
   container.child = child
@@ -78,6 +79,15 @@ const appendFns = {
   'Fixed': (container: Gtk.Fixed, child: Gtk.Widget) => {
     const { x, y } = ex.get(child) ?? { x: 0, y: 0 }
     container.put(child, x, y)
+  },
+  'PopoverMenu': (container: Gtk.PopoverMenu, child: Gtk.Widget) => {
+    const id = ex.get(child)
+    console.log("append to menu",child,id)
+    container.add_child(child, id)
+  },
+  'Grid':(container: Gtk.Grid, child: Gtk.Widget) => {
+    const { row, col,rowSpan,colSpan } = ex.get(child) ?? { row: 0, col: 0,rowSpan:1,colSpan:1 }
+    container.attach(child, col, row, colSpan, rowSpan)
   }
 }
 

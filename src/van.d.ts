@@ -7,11 +7,8 @@ export interface State<T> {
 }
 type Element = Gtk.Widget
 type Node = Gtk.Widget
-export type WidgetNameMap = {
-  Button: Gtk.Button,
-  Label: Gtk.Label,
+export type ContainerMap = {
   Box: Gtk.Box,
-  Entry: Gtk.Entry,
   ScrolledWindow: Gtk.ScrolledWindow,
   Grid: Gtk.Grid,
   ListBox: Gtk.ListBox,
@@ -21,20 +18,14 @@ export type WidgetNameMap = {
   StackSwitcher: Gtk.StackSidebar,
   StackSidebar: Gtk.StackSidebar,
   StackPage: Gtk.StackPage
-  Switch: Gtk.Switch,
-  Scale: Gtk.Scale,
   FlowBox: Gtk.FlowBox,
   Fixed: Gtk.Fixed,
-  DrawingArea: Gtk.DrawingArea,
   Notebook: Gtk.Notebook,
-  Spinner: Gtk.Spinner,
-  Overlay: Gtk.Overlay
+  Overlay: Gtk.Overlay,
+  PopoverMenu: Gtk.PopoverMenu
 }
-export type WidgetCtorProps = {
-  Button: Gtk.Button.ConstructorProps,
-  Label: Gtk.Label.ConstructorProps,
+export type ContainerCtorProps = {
   Box: Gtk.Box.ConstructorProps,
-  Entry: Gtk.Entry.ConstructorProps,
   ScrolledWindow: Gtk.ScrolledWindow.ConstructorProps,
   Grid: Gtk.Grid.ConstructorProps,
   ListBox: Gtk.ListBox.ConstructorProps,
@@ -44,8 +35,6 @@ export type WidgetCtorProps = {
   StackSwitcher: Gtk.StackSidebar.ConstructorProps,
   StackSidebar: Gtk.StackSidebar.ConstructorProps,
   StackPage: Gtk.StackPage.ConstructorProps
-  Switch: Gtk.Switch.ConstructorProps,
-  Scale: Gtk.Scale.ConstructorProps,
   FlowBox: Gtk.FlowBox.ConstructorProps,
   Fixed: Gtk.Fixed.ConstructorProps,
   DrawingArea: Gtk.DrawingArea.ConstructorProps & {
@@ -53,9 +42,49 @@ export type WidgetCtorProps = {
   },
   Notebook: Gtk.Notebook.ConstructorProps,
   Spinner: Gtk.Spinner.ConstructorProps,
-  Overlay: Gtk.Overlay.ConstructorProps
+  Overlay: Gtk.Overlay.ConstructorProps,
+  PopoverMenu: Gtk.PopoverMenu.ConstructorProps
+}
+export type AtomWidgetMap = {
+  Button: Gtk.Button,
+  ToggleButton: Gtk.ToggleButton,
+  CheckButton: Gtk.CheckButton,
+  Label: Gtk.Label,
+  Spinner: Gtk.Spinner,
+  ProgressBar: Gtk.ProgressBar
+  Entry: Gtk.Entry,
+  Switch: Gtk.Switch,
+  Scale: Gtk.Scale,
+  DrawingArea: Gtk.DrawingArea,
+  LevelBar: Gtk.LevelBar,
+  Picture: Gtk.Picture,
+  DropDown: Gtk.DropDown,
+  TextView: Gtk.TextView
+}
+export type AtomWidgetsProps = {
+  Button: Gtk.Button.ConstructorProps,
+  ToggleButton: Gtk.ToggleButton.ConstructorProps,
+  CheckButton: Gtk.CheckButton.ConstructorProps,
+  Label: Gtk.Label.ConstructorProps,
+  Spinner: Gtk.Spinner.ConstructorProps,
+  ProgressBar: Gtk.ProgressBar.ConstructorProps
+  Entry: Gtk.Entry.ConstructorProps,
+  Switch: Gtk.Switch.ConstructorProps,
+  Scale: Gtk.Scale.ConstructorProps,
+  DrawingArea: Gtk.DrawingArea.ConstructorProps,
+  LevelBar: Gtk.LevelBar.ConstructorProps,
+  Picture: Gtk.Picture.ConstructorProps & { filename?: string },
+  DropDown: Gtk.DropDown.ConstructorProps,
+  TextView: Gtk.TextView.ConstructorProps,
 }
 
+type GetSetter<T extends { [k: string]: any }> = {
+  [K in keyof T as K extends `set_${infer Rest}` ? Rest : never]: T[K]
+}
+type SetterNotify<T extends Record<string, any>> = {
+  [K in keyof T as
+  K extends string ? `onnotify::${K}` : never]?: (s: T) => void
+}
 
 /**
  * (string,callback) | ('clicked',callback) | ('actived',callback)
@@ -79,21 +108,28 @@ export type ReactiveProps<T> = {
   ? T[K] | (() => T[K])
   : T[K] | State<T[K]> | (() => T[K])
 }
-export type WidgetEventsMap = {
-  [k in keyof WidgetNameMap]: Events<WidgetNameMap[k]["connect"]>
-} & {
+export type ContainerEventsMap = {
+  [k in keyof ContainerMap]: Events<ContainerMap[k]["connect"]> & SetterNotify<ContainerMap[k]>
+}
+//type A = Events<Gtk.Editable['connect']>['onch']
+
+export type ContainerReactivePropsMap = {
+  [k in keyof ContainerCtorProps]: ReactiveProps<ContainerCtorProps[k]>// & Events<WidgetNameMap[k]["connect"]>
+}
+
+export type AtomWidgetReactivePropsMap = {
+  [k in keyof AtomWidgetsProps]: ReactiveProps<AtomWidgetsProps[k]>
+}
+export type AtomWidgetEventsMap = {
+  [k in keyof AtomWidgetMap]: Events<AtomWidgetMap[k]["connect"]> & SetterNotify<AtomWidgetMap[k]>
+} &
+{
   'Entry': Events<Gtk.Entry['connect']> & {
     onchanged?: (i: Gtk.Entry) => void,
     'ondelete-text'?: (i: Gtk.Entry) => void,
     'oninsert-text'?: (i: Gtk.Entry) => void
   }
 }
-//type A = Events<Gtk.Editable['connect']>['onch']
-
-export type WidgetReactiveProps = {
-  [k in keyof WidgetCtorProps]: ReactiveProps<WidgetCtorProps[k]>// & Events<WidgetNameMap[k]["connect"]>
-}
-
 // Defining readonly view of State<T> for covariance.
 // Basically we want StateView<string> to implement StateView<string | number>
 export type StateView<T> = Readonly<State<T>>
@@ -120,7 +156,10 @@ export type SingleChildDom = ValidChildDomValue | StateView<Primitive | null | u
 export type TagFunc<Result> = (first?: Props & ReactiveProps<Result> | ChildDom, ...rest: readonly ChildDom[]) => Result
 
 export type Tags = {
-  [K in keyof WidgetNameMap]: (first?: (WidgetReactiveProps[K] & WidgetEventsMap[K]) | ChildDom, ...rest: readonly ChildDom[]) => WidgetNameMap[K]
+  [K in keyof ContainerMap]: (first?: (ContainerReactivePropsMap[K] & ContainerEventsMap[K]) | ChildDom, ...rest: readonly ChildDom[]) => ContainerMap[K]
+}
+export type AtomWidget = {
+  [K in keyof AtomWidgetMap]: (first?: AtomWidgetReactivePropsMap[K] & AtomWidgetEventsMap[K]) => AtomWidgetMap[K]
 }
 
 declare function state<T>(): State<T>

@@ -1,10 +1,11 @@
 {
   "name": "van-gtk",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "a.js",
+  "repository": "https://github.com/JunYang-tes/van-gtk.git",
+  "type": "module",
+  "main": "./src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +17,8 @@
     "esbuild": "^0.24.0",
     "vanjs-core": "^1.5.2"
   },
+  "files": [
+    "src"
+  ],
   "packageManager": "pnpm@8.15.4+sha1.c85a4305534f76d461407b59277b954bac97b5c4"
 }

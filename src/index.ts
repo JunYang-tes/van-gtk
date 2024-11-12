@@ -3,15 +3,12 @@ import GLib from 'gi://GLib?version=2.0';
 import Graphene from 'gi://Graphene?version=1.0';
 import './dom.js'
 import vancore from 'vanjs-core'
-import type { Tags, Van, State, ChildDom, ValidChildDomValue, BindingFunc, SingleChildDom, WidgetCtorProps, WidgetReactiveProps } from './van.d.ts'
+import type { Tags, Van, State, ChildDom, ValidChildDomValue, BindingFunc, SingleChildDom, ContainerCtorProps, ContainerReactivePropsMap, AtomWidget } from './van.d.ts'
 import c from 'gi://cairo?version=1.0'
 import * as ex from './ex'
-const tags = vancore.tags as any as Tags
+const tags = vancore.tags as any as Tags & AtomWidget
 export const {
-  Button,
   Box,
-  Label,
-  Entry,
   ListBox,
   ListBoxRow,
   ScrolledWindow,
@@ -19,13 +16,28 @@ export const {
   StackSwitcher,
   StackSidebar,
   Revealer,
-  Switch,
-  Scale,
   FlowBox,
   Fixed,
-  DrawingArea,
   Notebook,
+  PopoverMenu,
+  Grid,
 } = vancore.tags as any as Tags
+
+export const {
+  Switch,
+  Scale,
+  DrawingArea,
+  ProgressBar,
+  Label,
+  Entry,
+  Button,
+  CheckButton,
+  LevelBar,
+  Picture,
+  DropDown,
+  ToggleButton,
+  TextView,
+} = vancore.tags as any as AtomWidget
 
 export type ReactiveVal<T> = T | State<T> | (() => T)
 type ChildWidget<T extends Gtk.Widget = Gtk.Widget> = T | (() => T) | string
@@ -150,14 +162,9 @@ export function VFLContainer(
   return box
 }
 
-function t(props: Partial<Gtk.Button.ConstructorProps>) {
-
-}
-
-export function Spinner(props: WidgetReactiveProps['Spinner']) {
+export function Spinner(props: ContainerReactivePropsMap['Spinner']) {
   const { spinning, ...rest } = props
   const spinner = tags.Spinner(rest)
-  const b = tags.Button()
   vancore.derive(() => {
     if (valueOf(props.spinning)) {
       spinner.start()
@@ -168,11 +175,42 @@ export function Spinner(props: WidgetReactiveProps['Spinner']) {
   return spinner
 }
 
+export function PopoverMenuItem(
+  id: string,
+  child: Gtk.Widget
+) {
+  ex.put(child, id)
+  return child
+}
+
+export function GridItem(props: {
+  row: ReactiveVal<number>,
+  col: ReactiveVal<number>,
+  rowSpan?: ReactiveVal<number>,
+  colSpan?: ReactiveVal<number>
+}, child: Gtk.Widget) {
+  return (w: Gtk.Widget | undefined) => {
+    const col = valueOf(props.col)
+    const row = valueOf(props.row)
+    const rowSpan = valueOf(props.rowSpan) ?? 1
+    const colSpan = valueOf(props.colSpan) ?? 1
+    if (w) {
+      w.unparent()
+      const parent = child.parent as Gtk.Grid
+      if (parent) {
+        parent.attach(child, col, row, colSpan, rowSpan)
+      }
+    }
+    ex.put(child, { row, col, rowSpan, colSpan })
+    return child
+  }
+}
+
 export const van = {
   state: vancore.state,
   derive: vancore.derive,
   add: vancore.add as any as Van["add"],
-  tags: vancore.tags as any as Tags,
+  tags: vancore.tags as any as Tags & AtomWidget,
 }
 
 export function app(win: () => Gtk.Window) {
