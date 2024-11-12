@@ -46,6 +46,7 @@ const replace = {
   'ListBox': replaceWith,
   'ListBoxRow': singleChildContainerReplaceWith<Gtk.ListBoxRow>,
   'ScrolledWindow': singleChildContainerReplaceWith<Gtk.ScrolledWindow>,
+  'Window': singleChildContainerReplaceWith<Gtk.Window>,
   'Revealer': singleChildContainerReplaceWith<Gtk.Revealer>,
   'StackPage': singleChildContainerReplaceWith<Gtk.StackPage>,
   'Stack': replaceWith,
@@ -59,6 +60,7 @@ function singleChildContainerAppend<T extends { child: Gtk.Widget }>(container: 
 const appendFns = {
   'ListBoxRow': singleChildContainerAppend<Gtk.ListBoxRow>,
   'ScrolledWindow': singleChildContainerAppend<Gtk.ScrolledWindow>,
+  'Window': singleChildContainerAppend<Gtk.Window>,
   'Revealer': singleChildContainerAppend<Gtk.Revealer>,
   'StackPage': singleChildContainerAppend<Gtk.StackPage>,
   'Stack': (container: Gtk.Stack, child: Gtk.Widget) => {
@@ -82,11 +84,11 @@ const appendFns = {
   },
   'PopoverMenu': (container: Gtk.PopoverMenu, child: Gtk.Widget) => {
     const id = ex.get(child)
-    console.log("append to menu",child,id)
+    console.log("append to menu", child, id)
     container.add_child(child, id)
   },
-  'Grid':(container: Gtk.Grid, child: Gtk.Widget) => {
-    const { row, col,rowSpan,colSpan } = ex.get(child) ?? { row: 0, col: 0,rowSpan:1,colSpan:1 }
+  'Grid': (container: Gtk.Grid, child: Gtk.Widget) => {
+    const { row, col, rowSpan, colSpan } = ex.get(child) ?? { row: 0, col: 0, rowSpan: 1, colSpan: 1 }
     container.attach(child, col, row, colSpan, rowSpan)
   }
 }

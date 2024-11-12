@@ -23,6 +23,7 @@ export type ContainerMap = {
   Notebook: Gtk.Notebook,
   Overlay: Gtk.Overlay,
   PopoverMenu: Gtk.PopoverMenu
+  Window:Gtk.Window,
 }
 export type ContainerCtorProps = {
   Box: Gtk.Box.ConstructorProps,
@@ -43,7 +44,8 @@ export type ContainerCtorProps = {
   Notebook: Gtk.Notebook.ConstructorProps,
   Spinner: Gtk.Spinner.ConstructorProps,
   Overlay: Gtk.Overlay.ConstructorProps,
-  PopoverMenu: Gtk.PopoverMenu.ConstructorProps
+  PopoverMenu: Gtk.PopoverMenu.ConstructorProps,
+  Window:Gtk.Window.ConstructorProps
 }
 export type AtomWidgetMap = {
   Button: Gtk.Button,

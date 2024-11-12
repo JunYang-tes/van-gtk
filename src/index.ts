@@ -21,6 +21,7 @@ export const {
   Notebook,
   PopoverMenu,
   Grid,
+  Window,
 } = vancore.tags as any as Tags
 
 export const {
