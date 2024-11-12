@@ -1,11 +1,18 @@
 # van-gtk = vanjs + gtk4
 
+A library lets you create GUI with [vanjs](https://vanjs.org) and [gjs](https://gjs.guide/guides/gtk/3/03-installing.html#installing-gjs) in a reactive way.
+
 
 ## Hello World
 
 ![Counter Image](./counter.png)
 
-1. You should have installed [gjs](https://gjs.guide/guides/gtk/3/03-installing.html#installing-gjs) 
+1. You should have installed [gjs](https://gjs.guide/guides/gtk/3/03-installing.html#installing-gjs).
+
+Example for Archlinux
+```sh
+sudo pacman -S gjs
+```
 
 1. Create a npm project
 ```sh
