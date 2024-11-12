@@ -1,12 +1,18 @@
 {
   "name": "van-gtk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "repository": "https://github.com/JunYang-tes/van-gtk.git",
   "type": "module",
   "main": "./src/index.ts",
-  "scripts": {
-  },
+  "scripts": {},
+  "keywords": [
+    "reactive",
+    "gtk",
+    "gtk4",
+    "van",
+    "gui"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
