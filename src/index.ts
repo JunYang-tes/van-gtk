@@ -6,7 +6,9 @@ import vancore from 'vanjs-core'
 import type { Tags, Van, State, ChildDom, ValidChildDomValue, BindingFunc, SingleChildDom, ContainerCtorProps, ContainerReactivePropsMap, AtomWidget } from './van.d.ts'
 import c from 'gi://cairo?version=1.0'
 import * as ex from './ex'
+import './hack'
 const tags = vancore.tags as any as Tags & AtomWidget
+export type { State }
 export const {
   Box,
   ListBox,
@@ -54,6 +56,7 @@ export function valueOf(val: any) {
     return val
   }
 }
+
 
 
 export function StackPage(props: {
@@ -205,6 +208,20 @@ export function GridItem(props: {
     ex.put(child, { row, col, rowSpan, colSpan })
     return child
   }
+}
+
+export function VBox(props: ContainerCtorProps['Box']) {
+  return Box({
+    ...props,
+    orientation: Gtk.Orientation.VERTICAL
+  })
+}
+
+export function HBox(props:ContainerCtorProps['Box']) {
+  return Box({
+    ...props,
+    orientation: Gtk.Orientation.HORIZONTAL
+  })
 }
 
 export const van = {
