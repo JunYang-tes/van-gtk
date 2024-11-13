@@ -22,6 +22,7 @@ type MimicDom<T extends Gtk.Widget> = T & {
   return wrapWidget(label, "Label")
 }
 
+const parentCache = ex.weakCache()
 function replaceWith(box: Gtk.Widget,
   newWidget: Gtk.Widget, oldWidget: Gtk.Widget
 ) {
@@ -40,6 +41,7 @@ function singleChildContainerReplaceWith<T extends { child: Gtk.Widget }>(contai
   oldWidget.unparent();
   container.child = newWidget
 }
+
 
 const replace = {
   'Box': replaceWith,
@@ -84,7 +86,6 @@ const appendFns = {
   },
   'PopoverMenu': (container: Gtk.PopoverMenu, child: Gtk.Widget) => {
     const id = ex.get(child)
-    console.log("append to menu", child, id)
     container.add_child(child, id)
   },
   'Grid': (container: Gtk.Grid, child: Gtk.Widget) => {
@@ -106,19 +107,26 @@ function wrapWidget<T extends Gtk.Widget>(
     widget.unparent();
   }
   w.replaceWith = function (newWidget: Gtk.Widget) {
-    const parent = widget.parent
-    replace[parent._name as keyof typeof replace]?.(parent, newWidget, widget)
+    /*
+     * Some widgets (for example ScrolledWindow) will added
+     * a special widget as it's real child, (Viewport for ScrolledWindow)
+     * */
+    const parent =
+      parentCache.get(widget)
+    const r = replace[parent._name as keyof typeof replace]
+    if (r) {
+      r(parent as any, newWidget, widget)
+      parentCache.put(newWidget, parent)
+    } else {
+      console.warn("no replace function for:", parent)
+    }
   }
   w.setAttribute = function (name: string, value: any) {
-    console.log("name:", name, value);
     try {
       (widget as any)[`set_${name}`](value)
     } catch (e) {
       console.error(e)
     }
-    // widget.set({
-    //   name: value
-    // })
   }
   w.append = function (child: Gtk.Widget | string | number | boolean) {
     if (append == null && appendFns[name as keyof typeof appendFns] == null) return
@@ -129,6 +137,7 @@ function wrapWidget<T extends Gtk.Widget>(
     } else {
       appendFns[name as keyof typeof appendFns]?.(widget, childWidget)
     }
+    parentCache.put(childWidget, widget)
   }
   w.addEventListener =
     function (event: string, callback: any) {
