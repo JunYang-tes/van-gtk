@@ -3,7 +3,7 @@ import GLib from 'gi://GLib?version=2.0';
 import Graphene from 'gi://Graphene?version=1.0';
 import './dom.js'
 import vancore from 'vanjs-core'
-import type { Tags, Van, State, ChildDom, ValidChildDomValue, BindingFunc, SingleChildDom, ContainerCtorProps, ContainerReactivePropsMap, AtomWidget } from './van.d.ts'
+import type { Tags, Van, State, ChildDom, ValidChildDomValue, BindingFunc, SingleChildDom, ContainerCtorProps, ContainerReactivePropsMap, AtomWidget, ContainerEventsMap } from './van.d.ts'
 import c from 'gi://cairo?version=1.0'
 import * as ex from './ex'
 import './hack'
@@ -210,18 +210,50 @@ export function GridItem(props: {
   }
 }
 
-export function VBox(props: ContainerCtorProps['Box']) {
+const objectProto = Object.getPrototypeOf({})
+function prepareParam<T>(
+  def: T,
+  first?: T | ChildDom, ...rest: ChildDom[]) {
+  return Object.getPrototypeOf(first) === objectProto
+    ? {
+      props: first as T,
+      children: rest
+    }
+    : { props: def, children: [first as ChildDom, ...rest] }
+}
+
+export function VBox(first?: (ContainerReactivePropsMap['Box'] & ContainerEventsMap['Box']) | ChildDom, ...rest: readonly ChildDom[]) {
+  const {
+    props,
+    children
+  } = prepareParam(
+    {},
+    first,
+    ...rest
+  )
   return Box({
     ...props,
     orientation: Gtk.Orientation.VERTICAL
-  })
+  },
+    children
+  )
 }
 
-export function HBox(props:ContainerCtorProps['Box']) {
+export function HBox(first?: (ContainerReactivePropsMap['Box'] & ContainerEventsMap['Box']) | ChildDom, ...rest: readonly ChildDom[]) {
+  const {
+    props,
+    children
+  } = prepareParam(
+    {},
+    first,
+    ...rest
+  )
   return Box({
     ...props,
     orientation: Gtk.Orientation.HORIZONTAL
-  })
+  },
+    children
+  )
 }
 
 export const van = {
