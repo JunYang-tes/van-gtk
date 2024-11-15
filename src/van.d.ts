@@ -124,6 +124,7 @@ export type AtomWidgetReactivePropsMap = {
 }
 export type AtomWidgetEventsMap = {
   [k in keyof AtomWidgetMap]: Events<AtomWidgetMap[k]["connect"]> & SetterNotify<AtomWidgetMap[k]>
+    & Events<Gtk.Widget['connect']>
 } &
 {
   'Entry': Events<Gtk.Entry['connect']> & {

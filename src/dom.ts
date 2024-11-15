@@ -104,7 +104,11 @@ function wrapWidget<T extends Gtk.Widget>(
   w._name = name;
   w.nodeType = 1
   w.remove = function () {
+    const cb = ex.widgetsRemoveCallback.get(widget)
     widget.unparent();
+    if (cb) {
+      cb()
+    }
   }
   w.replaceWith = function (newWidget: Gtk.Widget) {
     /*
@@ -117,6 +121,8 @@ function wrapWidget<T extends Gtk.Widget>(
     if (r) {
       r(parent as any, newWidget, widget)
       parentCache.put(newWidget, parent)
+      const cb = ex.widgetsRemoveCallback.get(widget)
+      cb()
     } else {
       console.warn("no replace function for:", parent)
     }

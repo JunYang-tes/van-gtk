@@ -1,4 +1,5 @@
 import Gtk from 'gi://Gtk?version=4.0';
+import Gdk from 'gi://Gdk?version=4.0';
 import GLib from 'gi://GLib?version=2.0';
 import Graphene from 'gi://Graphene?version=1.0';
 import './dom.js'
@@ -254,6 +255,26 @@ export function HBox(first?: (ContainerReactivePropsMap['Box'] & ContainerEvents
   },
     children
   )
+}
+export function OnWidgetRemoved(child: Gtk.Widget, callback: () => void) {
+  ex.widgetsRemoveCallback.put(child, callback)
+  return child
+}
+
+
+export function loadStyle(style: string) {
+  const provider = new Gtk.CssProvider()
+  provider.load_from_string(style)
+  const display = Gdk.Display.get_default();
+  if (display) {
+    Gtk.StyleContext.add_provider_for_display(
+      display,
+      provider,
+      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    )
+  } else {
+    console.warn("No display found")
+  }
 }
 
 export const van = {
