@@ -122,7 +122,7 @@ function wrapWidget<T extends Gtk.Widget>(
       r(parent as any, newWidget, widget)
       parentCache.put(newWidget, parent)
       const cb = ex.widgetsRemoveCallback.get(widget)
-      cb()
+      cb?.()
     } else {
       console.warn("no replace function for:", parent)
     }

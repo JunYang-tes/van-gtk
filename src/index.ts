@@ -262,7 +262,31 @@ export function OnWidgetRemoved(child: Gtk.Widget, callback: () => void) {
 }
 
 
+const styles: (() => void)[] = []
 export function loadStyle(style: string) {
+  if (Gtk.is_initialized()) {
+    return loadStyle_(style)
+  } else {
+    let rmStyle: (() => void) | null = null
+    const add = () => {
+      rmStyle = loadStyle_(style)
+    }
+    let rm = () => {
+      if (rmStyle) {
+        rmStyle()
+      } else {
+        const i = styles.findIndex(i => i === rmStyle)
+        if (i > -1) {
+          styles.splice(i, 1)
+        }
+      }
+    }
+    styles.push(rm)
+    return rm
+  }
+}
+
+function loadStyle_(style: string) {
   const provider = new Gtk.CssProvider()
   provider.load_from_string(style)
   const display = Gdk.Display.get_default();
@@ -275,6 +299,14 @@ export function loadStyle(style: string) {
   } else {
     console.warn("No display found")
   }
+  return () => {
+    if (display) {
+      Gtk.StyleContext.remove_provider_for_display(
+        display,
+        provider
+      )
+    }
+  }
 }
 
 export const van = {
@@ -286,6 +318,7 @@ export const van = {
 
 export function app(win: () => Gtk.Window) {
   Gtk.init()
+  styles.forEach(style => style())
   const window = win();
   const loop = GLib.MainLoop.new(null, false);
   const chainable = {
