@@ -281,7 +281,7 @@ export function loadStyle(style: string) {
         }
       }
     }
-    styles.push(rm)
+    styles.push(add)
     return rm
   }
 }
