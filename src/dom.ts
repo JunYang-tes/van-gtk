@@ -158,7 +158,7 @@ function wrapWidget<T extends Gtk.Widget>(
     };
   Object.defineProperty(w, 'isConnected', {
     get: function () {
-      return w.parent != null
+      return w.root != null
     }
   })
   return w
